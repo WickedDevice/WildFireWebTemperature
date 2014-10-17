@@ -1,9 +1,16 @@
 /*
-  WildFire Web Server
-  A simple web server that shows the value of the analog input pins.
+  Uses a Wicked Device WildFire and a DHT22 temperature sensor to make
+  temperature data available on the web. The DHT22 output should be connected
+  to pin 8. An LED will light up if the temperature in Fahrenheit drops below 
+  tempThreshold.
+
+  This sketch is adapted from Nathan Chantrell's WildFire_WebServer and
+  ladyada's DHTtester. It requires the Adafruit DHT library.
   
-  Adapted from the Arduino ethernet example to work with the Wicked Device WildFire and
-  Adafruit CC3000 library by Nathan Chantrell
+  Adapted by Velthur Pendell for Wicked Device
+  2014
+  
+  wildfire.wickeddevice.com for more information
  */
 
 #include <WildFire_CC3000.h>
@@ -14,13 +21,16 @@ WildFire wf;
 
 WildFire_CC3000 cc3000; // you can change this clock speed but DI
 
-#define WLAN_SSID       "linksys_almond"           // cannot be longer than 32 characters!
-#define WLAN_PASS       "6YEKFGE6YC"
+// You should replace this network information with your own
+// and tempThreshold with one of your choosing
+#define WLAN_SSID       "myNetwork"           // cannot be longer than 32 characters!
+#define WLAN_PASS       "myPassword"
+#define tempThreshold 60
 // Security can be WLAN_SEC_UNSEC, WLAN_SEC_WEP, WLAN_SEC_WPA or WLAN_SEC_WPA2
 #define WLAN_SECURITY   WLAN_SEC_WPA2
 #define DHTTYPE DHT22
 #define DHTPIN 8
-#define tempThreshold 79
+
 // Initialize the CC3000 server library
 // with the port you want to use 
 // (port 80 is default for HTTP):
