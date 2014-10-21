@@ -25,8 +25,8 @@ WildFire_CC3000 cc3000; // you can change this clock speed but DI
 
 // You should replace this network information with your own
 
-#define WLAN_SSID       "linksys_almond"           // cannot be longer than 32 characters!
-#define WLAN_PASS       "6YEKFGE6YC"
+#define WLAN_SSID       "myNetwork"           // cannot be longer than 32 characters!
+#define WLAN_PASS       "myPassword"
 // Security can be WLAN_SEC_UNSEC, WLAN_SEC_WEP, WLAN_SEC_WPA or WLAN_SEC_WPA2
 #define WLAN_SECURITY   WLAN_SEC_WPA2
 #define DHTTYPE DHT22
