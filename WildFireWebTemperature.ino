@@ -17,15 +17,16 @@
 #include <SPI.h>
 #include <WildFire.h>
 #include "DHT.h"
+#include <avr/wdt.h>
+
 WildFire wf;
 
 WildFire_CC3000 cc3000; // you can change this clock speed but DI
 
 // You should replace this network information with your own
-// and tempThreshold with one of your choosing
-#define WLAN_SSID       "myNetwork"           // cannot be longer than 32 characters!
-#define WLAN_PASS       "myPassword"
-#define tempThreshold 60
+
+#define WLAN_SSID       "linksys_almond"           // cannot be longer than 32 characters!
+#define WLAN_PASS       "6YEKFGE6YC"
 // Security can be WLAN_SEC_UNSEC, WLAN_SEC_WEP, WLAN_SEC_WPA or WLAN_SEC_WPA2
 #define WLAN_SECURITY   WLAN_SEC_WPA2
 #define DHTTYPE DHT22
@@ -39,7 +40,30 @@ WildFire_CC3000_Server server(80);
 //Initialize DHT sensor
 DHT dht(DHTPIN, DHTTYPE);
 
+int tempThreshold;
+
 unsigned long time;
+#define soft_reset() \
+do \
+{ \
+wdt_enable(WDTO_15MS); \
+for(;;) \
+{ \
+} \
+} while(0)
+
+String input;
+
+// Function Prototype
+void wdt_init(void) __attribute__((naked)) __attribute__((section(".init3")));
+
+// Function Implementation
+void wdt_init(void)
+{
+MCUSR = 0;
+wdt_disable();
+return;
+}
 
 void setup() {
   
@@ -93,12 +117,14 @@ void setup() {
   dht.begin();
   
   time = millis();
+  tempThreshold = 0;
   
  }
 
 
 void loop() {
   // listen for incoming clients
+  input = String();
   WildFire_CC3000_ClientRef client = server.available();
   if (client) {
     Serial.println(F("new client"));
@@ -108,6 +134,15 @@ void loop() {
       if (client.available()) {
         char c = client.read();
         Serial.write(c);
+        if(c=='\n') {
+          if(input.indexOf("ThresholdTemp=") > -1) {
+            tempThreshold = input.substring(1+input.lastIndexOf("=")).toInt();
+          }
+          input = String();
+        }
+        else {
+          input += c;
+        }
         // if you have got to the end of the line (received a newline
         // character) and the line is blank, the http request has ended,
         // so you can send a reply
@@ -158,6 +193,10 @@ void loop() {
           client.fastrprintln("<br />");       
           client.fastrprintln("</html>");
           
+          client.fastrprintln("<form>");
+          client.fastrprintln("Threshold Temperature: <input type='text' name='ThresholdTemp'><br>");
+          client.fastrprintln("</form>");
+          
           if(f<tempThreshold) {
             digitalWrite(6,HIGH);
           }
@@ -185,7 +224,8 @@ void loop() {
     time = millis();
   }
   //reset if connection has been interrupted for more than 5 minutes
-  else if(millis() - time > 300000) {asm volatile (" jmp 0");
+  else if(millis() - time > 300000) {
+    soft_reset();
   }
 }
 
