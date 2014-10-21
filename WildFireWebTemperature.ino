@@ -25,8 +25,8 @@ WildFire_CC3000 cc3000; // you can change this clock speed but DI
 
 // You should replace this network information with your own
 
-#define WLAN_SSID       "myNetwork"           // cannot be longer than 32 characters!
-#define WLAN_PASS       "myPassword"
+#define WLAN_SSID       "my_network"           // cannot be longer than 32 characters!
+#define WLAN_PASS       "my_password"
 // Security can be WLAN_SEC_UNSEC, WLAN_SEC_WEP, WLAN_SEC_WPA or WLAN_SEC_WPA2
 #define WLAN_SECURITY   WLAN_SEC_WPA2
 #define DHTTYPE DHT22
@@ -41,6 +41,7 @@ WildFire_CC3000_Server server(80);
 DHT dht(DHTPIN, DHTTYPE);
 
 int tempThreshold;
+char threshUnit;
 
 unsigned long time;
 #define soft_reset() \
@@ -135,7 +136,11 @@ void loop() {
         char c = client.read();
         Serial.write(c);
         if(c=='\n') {
-          if(input.indexOf("ThresholdTemp=") > -1) {
+          if(input.indexOf("GET /?ThresholdTemp=") > -1) {
+            while(input.lastIndexOf(" ")>input.lastIndexOf("ThresholdTemp=")){
+              input=input.substring(input.lastIndexOf("ThresholdTemp"),input.lastIndexOf(" "));
+              Serial.println(input);
+            }
             tempThreshold = input.substring(1+input.lastIndexOf("=")).toInt();
           }
           input = String();
@@ -151,7 +156,7 @@ void loop() {
           client.fastrprintln("HTTP/1.1 200 OK");
           client.fastrprintln("Content-Type: text/html");
           client.fastrprintln("Connection: close");  // the connection will be closed after completion of the response
-	  client.fastrprintln("Refresh: 5");  // refresh the page automatically every 5 sec
+	  client.fastrprintln("Refresh: 30");  // refresh the page automatically every 5 sec
           client.fastrprintln("");
           client.fastrprintln("<!DOCTYPE HTML>");
           client.fastrprintln("<html>");
@@ -191,11 +196,16 @@ void loop() {
           client.fastrprintln(" &#176F");
           
           client.fastrprintln("<br />");       
-          client.fastrprintln("</html>");
           
           client.fastrprintln("<form>");
-          client.fastrprintln("Threshold Temperature: <input type='text' name='ThresholdTemp'><br>");
+          client.fastrprintln("Threshold Temperature (&#176F): <input type='text' name='ThresholdTemp'><br>");
           client.fastrprintln("</form>");
+          client.fastrprintln("Current threshold: ");
+          char unitChar[1];
+          client.fastrprint(itoa(tempThreshold, unitChar, 10));
+          client.fastrprintln(" &#176F <br>");
+          client.fastrprintln(" \n");
+          client.fastrprintln("</html>");
           
           if(f<tempThreshold) {
             digitalWrite(6,HIGH);
