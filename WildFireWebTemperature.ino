@@ -39,6 +39,8 @@ WildFire_CC3000_Server server(80);
 //Initialize DHT sensor
 DHT dht(DHTPIN, DHTTYPE);
 
+unsigned long time;
+
 void setup() {
   
   pinMode(6, OUTPUT);
@@ -90,6 +92,8 @@ void setup() {
 
   dht.begin();
   
+  time = millis();
+  
  }
 
 
@@ -116,7 +120,6 @@ void loop() {
           client.fastrprintln("");
           client.fastrprintln("<!DOCTYPE HTML>");
           client.fastrprintln("<html>");
-          // output the value of each analog input pin (note, 8 pins on WildFire not 6)
           
           // Reading temperature or humidity takes about 250 milliseconds!
           // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
@@ -178,7 +181,11 @@ void loop() {
     delay(1);
     // close the connection:
     client.close();
-    Serial.println(F("client disonnected"));
+    Serial.println(F("client disconnected"));
+    time = millis();
+  }
+  //reset if connection has been interrupted for more than 5 minutes
+  else if(millis() - time > 300000) {asm volatile (" jmp 0");
   }
 }
 
